@@ -1,0 +1,6 @@
+{
+  "name": "MovieVerse",
+  "description": "Discover Your Next Favorite Movie. Explore trending films, mood-based recommendations, streaming services, genres, and popular actors.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
