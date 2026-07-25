@@ -285,11 +285,11 @@ export const tmdbService = {
     }
   },
 
-  // Full Movie Details (with videos, credits, watch providers)
+  // Full Movie Details (with videos, credits, watch providers, images, recommendations, similar)
   getMovieDetails: async (movieId: number): Promise<MovieDetails | null> => {
     try {
       const data = await fetchFromTmdb<MovieDetails>(`/movie/${movieId}`, {
-        append_to_response: 'videos,credits,watch/providers',
+        append_to_response: 'videos,credits,watch/providers,images,recommendations,similar',
       });
       return data;
     } catch {
@@ -303,8 +303,23 @@ export const tmdbService = {
         budget: 63000000,
         revenue: 100853753,
         videos: { results: [] },
-        credits: { cast: [] },
+        credits: { cast: [], crew: [] },
       };
+    }
+  },
+
+  // Movie Recommendations
+  getMovieRecommendations: async (movieId: number): Promise<Movie[]> => {
+    try {
+      const res = await fetchFromTmdb<{ results: Movie[] }>(`/movie/${movieId}/recommendations`);
+      if (res.results && res.results.length > 0) {
+        return res.results;
+      }
+      // Fallback to similar if recommendations are empty
+      const similarRes = await fetchFromTmdb<{ results: Movie[] }>(`/movie/${movieId}/similar`);
+      return similarRes.results || [];
+    } catch {
+      return FALLBACK_MOVIES;
     }
   },
 

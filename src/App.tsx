@@ -63,6 +63,57 @@ export default function App() {
     }
   };
 
+  // Handle URL path synchronization (/movie/:id & /actor/:id)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+
+      const movieMatch = path.match(/\/movie\/(\d+)/) || hash.match(/#\/movie\/(\d+)/);
+      const actorMatch = path.match(/\/actor\/(\d+)/) || hash.match(/#\/actor\/(\d+)/);
+
+      if (movieMatch) {
+        const id = parseInt(movieMatch[1], 10);
+        if (!isNaN(id)) setSelectedMovieId(id);
+      } else {
+        setSelectedMovieId(null);
+      }
+
+      if (actorMatch) {
+        const id = parseInt(actorMatch[1], 10);
+        if (!isNaN(id)) setSelectedActorId(id);
+      } else {
+        setSelectedActorId(null);
+      }
+    };
+
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
+  const handleSelectMovie = (id: number | null) => {
+    setSelectedMovieId(id);
+    if (id) {
+      window.history.pushState({ movieId: id }, '', `/movie/${id}`);
+    } else {
+      if (window.location.pathname.startsWith('/movie/')) {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
+
+  const handleSelectActor = (id: number | null) => {
+    setSelectedActorId(id);
+    if (id) {
+      window.history.pushState({ actorId: id }, '', `/actor/${id}`);
+    } else {
+      if (window.location.pathname.startsWith('/actor/')) {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
+
   useEffect(() => {
     loadInitialData();
 
@@ -99,26 +150,26 @@ export default function App() {
         {/* Hero Section */}
         <Hero
           movies={trendingMovies}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           isLoading={isLoading}
         />
 
         {/* Search Section */}
         <SearchSection
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
 
         {/* Mood Discovery Section */}
         <MoodDiscovery
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
 
         {/* Trending Movies Section */}
         <TrendingMovies
           movies={trendingMovies}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
           title="Trending This Week"
           subtitle="Top movies currently dominating global TMDB charts"
@@ -127,7 +178,7 @@ export default function App() {
         {/* Top Rated Blockbusters Section */}
         <TrendingMovies
           movies={topRatedMovies}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
           title="All-Time Classics & Top Rated"
           subtitle="Highest critically rated masterpieces of cinema history"
@@ -135,21 +186,21 @@ export default function App() {
 
         {/* OTT Streaming Services Section */}
         <OttPlatforms
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
 
         {/* Popular Genres Section */}
         <PopularGenres
           genres={genres}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
 
         {/* Popular Actors Section */}
         <PopularActors
           actors={actors}
-          onSelectActor={(id) => setSelectedActorId(id)}
+          onSelectActor={handleSelectActor}
         />
 
         {/* Footer */}
@@ -161,21 +212,21 @@ export default function App() {
         {/* Modals & Drawers */}
         <MovieDetailsModal
           movieId={selectedMovieId}
-          onClose={() => setSelectedMovieId(null)}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
-          onSelectActor={(id) => setSelectedActorId(id)}
+          onClose={() => handleSelectMovie(null)}
+          onSelectMovie={handleSelectMovie}
+          onSelectActor={handleSelectActor}
         />
 
         <ActorDetailsModal
           actorId={selectedActorId}
-          onClose={() => setSelectedActorId(null)}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onClose={() => handleSelectActor(null)}
+          onSelectMovie={handleSelectMovie}
         />
 
         <WatchlistModal
           isOpen={isWatchlistOpen}
           onClose={() => setIsWatchlistOpen(false)}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectMovie={handleSelectMovie}
         />
 
         <ApiKeyModal
@@ -187,8 +238,7 @@ export default function App() {
         <SearchModal
           isOpen={isSearchModalOpen}
           onClose={() => setIsSearchModalOpen(false)}
-          onSelectMovie={(id) => setSelectedMovieId(id)}
-          onSelectActor={(id) => setSelectedActorId(id)}
+          onSelectMovie={handleSelectMovie}
         />
       </div>
     </WatchlistProvider>

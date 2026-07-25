@@ -49,6 +49,40 @@ export interface MovieWatchProviders {
   buy?: WatchProvider[];
 }
 
+export interface CrewMember {
+  id: number;
+  name: string;
+  job: string;
+  department: string;
+  profile_path: string | null;
+}
+
+export interface ImageAsset {
+  file_path: string;
+  height: number;
+  width: number;
+  aspect_ratio: number;
+  vote_average: number;
+}
+
+export interface ProductionCompany {
+  id: number;
+  name: string;
+  logo_path: string | null;
+  origin_country: string;
+}
+
+export interface ProductionCountry {
+  iso_3166_1: string;
+  name: string;
+}
+
+export interface SpokenLanguage {
+  english_name?: string;
+  iso_639_1: string;
+  name: string;
+}
+
 export interface MovieDetails extends Movie {
   genres: Genre[];
   runtime: number;
@@ -56,11 +90,26 @@ export interface MovieDetails extends Movie {
   tagline: string | null;
   budget?: number;
   revenue?: number;
+  original_language?: string;
+  spoken_languages?: SpokenLanguage[];
+  production_companies?: ProductionCompany[];
+  production_countries?: ProductionCountry[];
   videos?: {
     results: Video[];
   };
   credits?: {
     cast: CastMember[];
+    crew?: CrewMember[];
+  };
+  images?: {
+    backdrops?: ImageAsset[];
+    posters?: ImageAsset[];
+  };
+  recommendations?: {
+    results: Movie[];
+  };
+  similar?: {
+    results: Movie[];
   };
   'watch/providers'?: {
     results: {
