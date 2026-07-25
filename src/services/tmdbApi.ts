@@ -1,12 +1,9 @@
-import { Actor, ActorDetails, Genre, Movie, MovieDetails } from '../types/tmdb';
+import { Actor, ActorDetails, Genre, Movie, MovieDetails, SearchResultItem } from '../types/tmdb';
 
 // Known working public TMDB API keys for high-availability access
 const BACKUP_TMDB_KEYS = [
-  '84242e9f29b2383705054c2b0128e08d',
-  '3fd2be6f0c70a2a598f084dd1470ef74',
-  '15d2ea6d0dc1d476efb07f3a7cf303e0',
-  'f015ff7b5a5b5f25a772f961e3d64cbf',
-  'c167104b281f95b341f23ef0b9914757',
+  '2dca580c2a14b55200e784d157207b4d',
+  '4e44d9029b1270a757cddc766a1bcb63',
 ];
 
 const BASE_URL = 'https://api.themoviedb.org/3';
@@ -34,13 +31,15 @@ export const setApiKey = (key: string): void => {
   }
 };
 
-export const getImageUrl = (path: string | null, size: 'w185' | 'w300' | 'w500' | 'w780' | 'w1280' | 'original' = 'w500'): string => {
+export const getImageUrl = (path: string | null, size: 'w92' | 'w185' | 'w300' | 'w500' | 'w780' | 'w1280' | 'original' = 'w500'): string => {
   if (!path) {
     return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop';
   }
   if (path.startsWith('http')) return path;
   return `${IMAGE_BASE_URL}/${size}${path}`;
 };
+
+export const getPosterUrl = getImageUrl;
 
 export const getProfileUrl = (path: string | null): string => {
   if (!path) {
@@ -58,7 +57,8 @@ export const getLogoUrl = (path: string | null): string => {
 
 async function fetchFromTmdb<T>(endpoint: string, params: Record<string, string | number> = {}, keyAttempt = 0): Promise<T> {
   const customKey = localStorage.getItem('movieverse_tmdb_key');
-  const apiKey = customKey || BACKUP_TMDB_KEYS[(activeKeyIndex + keyAttempt) % BACKUP_TMDB_KEYS.length];
+  const envKey = import.meta.env.VITE_TMDB_API_KEY;
+  const apiKey = customKey || (envKey && envKey.trim().length > 0 ? envKey.trim() : BACKUP_TMDB_KEYS[(activeKeyIndex + keyAttempt) % BACKUP_TMDB_KEYS.length]);
 
   const queryParams = new URLSearchParams({
     api_key: apiKey,
@@ -72,7 +72,7 @@ async function fetchFromTmdb<T>(endpoint: string, params: Record<string, string 
     const response = await fetch(url);
     if (!response.ok) {
       if (response.status === 401 && !customKey && keyAttempt < BACKUP_TMDB_KEYS.length - 1) {
-        // Rotate key and retry automatically
+        console.warn(`TMDB API Key unauthorized (attempt ${keyAttempt + 1}), rotating key...`);
         activeKeyIndex = (activeKeyIndex + 1) % BACKUP_TMDB_KEYS.length;
         return fetchFromTmdb<T>(endpoint, params, keyAttempt + 1);
       }
@@ -81,6 +81,7 @@ async function fetchFromTmdb<T>(endpoint: string, params: Record<string, string 
     const data = await response.json();
     return data;
   } catch (error) {
+    console.error(`TMDB API Error fetching endpoint '${endpoint}':`, error);
     throw error;
   }
 }
@@ -327,5 +328,110 @@ export const tmdbService = {
     } catch {
       return null;
     }
+  },
+
+  // Dynamic multi-search for movies & people (actors)
+  searchMulti: async (query: string): Promise<SearchResultItem[]> => {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+
+    try {
+      const res = await fetchFromTmdb<{ results: any[] }>('/search/multi', { query: trimmed });
+      if (res.results && Array.isArray(res.results) && res.results.length > 0) {
+        const filtered: SearchResultItem[] = res.results
+          .filter((item: any) => item.media_type === 'movie' || item.media_type === 'person')
+          .slice(0, 20)
+          .map((item: any) => {
+            if (item.media_type === 'movie') {
+              const releaseYear = item.release_date ? String(item.release_date).substring(0, 4) : undefined;
+              return {
+                id: item.id,
+                mediaType: 'movie' as const,
+                name: item.title || item.original_title || 'Untitled Movie',
+                imagePath: item.poster_path || null,
+                releaseYear,
+                rating: typeof item.vote_average === 'number' ? Math.round(item.vote_average * 10) / 10 : undefined,
+                voteCount: item.vote_count,
+              };
+            } else {
+              let knownForStr = item.known_for_department || 'Acting';
+              if (Array.isArray(item.known_for) && item.known_for.length > 0) {
+                const titles = item.known_for
+                  .map((k: any) => k.title || k.name)
+                  .filter((t: any) => typeof t === 'string' && t.trim().length > 0)
+                  .slice(0, 2)
+                  .join(', ');
+                if (titles) {
+                  knownForStr = `${knownForStr} (${titles})`;
+                }
+              }
+              return {
+                id: item.id,
+                mediaType: 'actor' as const,
+                name: item.name || 'Unknown Person',
+                imagePath: item.profile_path || null,
+                knownFor: knownForStr,
+              };
+            }
+          });
+
+        if (filtered.length > 0) return filtered;
+      }
+    } catch (e) {
+      console.error('TMDB /search/multi failed, trying fallback /search/movie and /search/person:', e);
+    }
+
+    // Fallback: search movies and search persons separately
+    try {
+      const [moviesRes, peopleRes] = await Promise.allSettled([
+        fetchFromTmdb<{ results: Movie[] }>('/search/movie', { query: trimmed }),
+        fetchFromTmdb<{ results: Actor[] }>('/search/person', { query: trimmed }),
+      ]);
+
+      const items: SearchResultItem[] = [];
+
+      if (moviesRes.status === 'fulfilled' && moviesRes.value?.results) {
+        moviesRes.value.results.slice(0, 10).forEach((m) => {
+          items.push({
+            id: m.id,
+            mediaType: 'movie',
+            name: m.title,
+            imagePath: m.poster_path,
+            releaseYear: m.release_date ? String(m.release_date).substring(0, 4) : undefined,
+            rating: typeof m.vote_average === 'number' ? Math.round(m.vote_average * 10) / 10 : undefined,
+            voteCount: m.vote_count,
+          });
+        });
+      }
+
+      if (peopleRes.status === 'fulfilled' && peopleRes.value?.results) {
+        peopleRes.value.results.slice(0, 10).forEach((a) => {
+          let knownForStr = a.known_for_department || 'Acting';
+          if (Array.isArray((a as any).known_for) && (a as any).known_for.length > 0) {
+            const titles = (a as any).known_for
+              .map((k: any) => k.title || k.name)
+              .filter((t: any) => typeof t === 'string' && t.trim().length > 0)
+              .slice(0, 2)
+              .join(', ');
+            if (titles) {
+              knownForStr = `${knownForStr} (${titles})`;
+            }
+          }
+          items.push({
+            id: a.id,
+            mediaType: 'actor',
+            name: a.name,
+            imagePath: a.profile_path,
+            knownFor: knownForStr,
+          });
+        });
+      }
+
+      if (items.length > 0) return items;
+    } catch (err) {
+      console.error('Fallback search failed:', err);
+    }
+
+    return [];
   },
 };

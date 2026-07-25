@@ -14,6 +14,7 @@ import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { ActorDetailsModal } from './components/ActorDetailsModal';
 import { WatchlistModal } from './components/WatchlistModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { SearchModal } from './components/SearchModal';
 import { Footer } from './components/Footer';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
   const [selectedActorId, setSelectedActorId] = useState<number | null>(null);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const loadInitialData = async () => {
     setIsLoading(true);
@@ -63,17 +65,20 @@ export default function App() {
 
   useEffect(() => {
     loadInitialData();
+
+    // Global keyboard shortcut (Cmd/Ctrl + K) to open search modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleOpenSearch = () => {
-    const searchSection = document.getElementById('search-section');
-    if (searchSection) {
-      searchSection.scrollIntoView({ behavior: 'smooth' });
-      const searchInput = document.getElementById('movie-search-input') as HTMLInputElement;
-      if (searchInput) {
-        setTimeout(() => searchInput.focus(), 400);
-      }
-    }
+    setIsSearchModalOpen(true);
   };
 
   const handleNavigateHome = () => {
@@ -177,6 +182,13 @@ export default function App() {
           isOpen={isApiKeyModalOpen}
           onClose={() => setIsApiKeyModalOpen(false)}
           onKeySaved={loadInitialData}
+        />
+
+        <SearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
+          onSelectMovie={(id) => setSelectedMovieId(id)}
+          onSelectActor={(id) => setSelectedActorId(id)}
         />
       </div>
     </WatchlistProvider>

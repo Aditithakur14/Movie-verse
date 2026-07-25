@@ -110,3 +110,15 @@ export interface OttPlatform {
   badgeBg: string;
   description: string;
 }
+
+export interface SearchResultItem {
+  id: number;
+  mediaType: 'movie' | 'actor';
+  name: string;
+  imagePath: string | null;
+  releaseYear?: string;
+  rating?: number;
+  knownFor?: string;
+  voteCount?: number;
+}
+
