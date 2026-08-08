@@ -333,11 +333,11 @@ export const tmdbService = {
     }
   },
 
-  // Actor Details (with biography & filmography)
+  // Actor Details (with biography, filmography & profile images)
   getActorDetails: async (actorId: number): Promise<ActorDetails | null> => {
     try {
       const data = await fetchFromTmdb<ActorDetails>(`/person/${actorId}`, {
-        append_to_response: 'movie_credits',
+        append_to_response: 'movie_credits,images',
       });
       return data;
     } catch {

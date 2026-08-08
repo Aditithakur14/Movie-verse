@@ -127,13 +127,30 @@ export interface Actor {
   known_for?: Movie[];
 }
 
+export interface MovieCreditCastItem extends Movie {
+  character: string;
+  credit_id?: string;
+  order?: number;
+}
+
+export interface MovieCreditCrewItem extends Movie {
+  job: string;
+  department: string;
+  credit_id?: string;
+}
+
 export interface ActorDetails extends Actor {
   biography: string;
   birthday: string | null;
   place_of_birth: string | null;
   deathday: string | null;
+  gender?: number; // 0: Not specified, 1: Female, 2: Male, 3: Non-binary
   movie_credits?: {
-    cast: (Movie & { character: string })[];
+    cast: MovieCreditCastItem[];
+    crew?: MovieCreditCrewItem[];
+  };
+  images?: {
+    profiles: ImageAsset[];
   };
 }
 

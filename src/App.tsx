@@ -239,6 +239,7 @@ export default function App() {
           isOpen={isSearchModalOpen}
           onClose={() => setIsSearchModalOpen(false)}
           onSelectMovie={handleSelectMovie}
+          onSelectActor={handleSelectActor}
         />
       </div>
     </WatchlistProvider>
