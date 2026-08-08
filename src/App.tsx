@@ -6,12 +6,14 @@ import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { SearchSection } from './components/SearchSection';
 import { MoodDiscovery } from './components/MoodDiscovery';
+import { BrowseByCinema } from './components/BrowseByCinema';
 import { TrendingMovies } from './components/TrendingMovies';
 import { OttPlatforms } from './components/OttPlatforms';
 import { PopularGenres } from './components/PopularGenres';
 import { PopularActors } from './components/PopularActors';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { ActorDetailsModal } from './components/ActorDetailsModal';
+import { CinemaDiscoveryModal } from './components/CinemaDiscoveryModal';
 import { WatchlistModal } from './components/WatchlistModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { SearchModal } from './components/SearchModal';
@@ -29,6 +31,7 @@ export default function App() {
   // Modals state
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const [selectedActorId, setSelectedActorId] = useState<number | null>(null);
+  const [selectedCinemaId, setSelectedCinemaId] = useState<string | null>(null);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -63,7 +66,7 @@ export default function App() {
     }
   };
 
-  // Handle URL path synchronization (/movie/:id & /actor/:id)
+  // Handle URL path synchronization (/movie/:id, /actor/:id & /cinema/:cinema)
   useEffect(() => {
     const handleUrlChange = () => {
       const path = window.location.pathname;
@@ -71,6 +74,7 @@ export default function App() {
 
       const movieMatch = path.match(/\/movie\/(\d+)/) || hash.match(/#\/movie\/(\d+)/);
       const actorMatch = path.match(/\/actor\/(\d+)/) || hash.match(/#\/actor\/(\d+)/);
+      const cinemaMatch = path.match(/\/cinema\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/cinema\/([a-zA-Z0-9_-]+)/);
 
       if (movieMatch) {
         const id = parseInt(movieMatch[1], 10);
@@ -84,6 +88,12 @@ export default function App() {
         if (!isNaN(id)) setSelectedActorId(id);
       } else {
         setSelectedActorId(null);
+      }
+
+      if (cinemaMatch) {
+        setSelectedCinemaId(cinemaMatch[1]);
+      } else {
+        setSelectedCinemaId(null);
       }
     };
 
@@ -109,6 +119,17 @@ export default function App() {
       window.history.pushState({ actorId: id }, '', `/actor/${id}`);
     } else {
       if (window.location.pathname.startsWith('/actor/')) {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
+
+  const handleSelectCinema = (cinemaId: string | null) => {
+    setSelectedCinemaId(cinemaId);
+    if (cinemaId) {
+      window.history.pushState({ cinemaId }, '', `/cinema/${cinemaId}`);
+    } else {
+      if (window.location.pathname.startsWith('/cinema/')) {
         window.history.pushState({}, '', '/');
       }
     }
@@ -165,6 +186,9 @@ export default function App() {
           onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
+
+        {/* Browse by Cinema Section */}
+        <BrowseByCinema onSelectCinema={handleSelectCinema} />
 
         {/* Trending Movies Section */}
         <TrendingMovies
@@ -223,6 +247,13 @@ export default function App() {
           onSelectMovie={handleSelectMovie}
         />
 
+        <CinemaDiscoveryModal
+          cinemaId={selectedCinemaId}
+          onClose={() => handleSelectCinema(null)}
+          onSelectMovie={handleSelectMovie}
+          genreMap={genreMap}
+        />
+
         <WatchlistModal
           isOpen={isWatchlistOpen}
           onClose={() => setIsWatchlistOpen(false)}
@@ -245,3 +276,4 @@ export default function App() {
     </WatchlistProvider>
   );
 }
+

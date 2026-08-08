@@ -449,4 +449,72 @@ export const tmdbService = {
 
     return [];
   },
+
+  // Discover Movies by Cinema Category (Language + Region)
+  getMoviesByCinema: async (
+    languageCode: string,
+    countryCode?: string,
+    sortBy: 'popular' | 'top_rated' | 'newest' | 'upcoming' = 'popular',
+    year?: number | null,
+    page = 1
+  ): Promise<{ results: Movie[]; totalPages: number; totalResults: number }> => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const params: Record<string, string | number> = {
+        page,
+        with_original_language: languageCode,
+      };
+
+      if (countryCode) {
+        params.with_origin_country = countryCode;
+      }
+
+      if (sortBy === 'popular') {
+        params.sort_by = 'popularity.desc';
+      } else if (sortBy === 'top_rated') {
+        params.sort_by = 'vote_average.desc';
+        params['vote_count.gte'] = 20;
+      } else if (sortBy === 'newest') {
+        params.sort_by = 'primary_release_date.desc';
+        params['primary_release_date.lte'] = today;
+      } else if (sortBy === 'upcoming') {
+        params.sort_by = 'primary_release_date.asc';
+        params['primary_release_date.gte'] = today;
+      }
+
+      if (year && !isNaN(year)) {
+        params.primary_release_year = year;
+      }
+
+      let res = await fetchFromTmdb<{
+        results: Movie[];
+        total_pages: number;
+        total_results: number;
+      }>('/discover/movie', params);
+
+      // Smart fallback: if strictly specifying origin_country returned 0 results, retry without origin_country
+      if ((!res.results || res.results.length === 0) && countryCode) {
+        delete params.with_origin_country;
+        res = await fetchFromTmdb<{
+          results: Movie[];
+          total_pages: number;
+          total_results: number;
+        }>('/discover/movie', params);
+      }
+
+      return {
+        results: res.results || [],
+        totalPages: res.total_pages || 1,
+        totalResults: res.total_results || 0,
+      };
+    } catch (error) {
+      console.error('Error fetching movies by cinema:', error);
+      return {
+        results: FALLBACK_MOVIES,
+        totalPages: 1,
+        totalResults: FALLBACK_MOVIES.length,
+      };
+    }
+  },
 };
+
