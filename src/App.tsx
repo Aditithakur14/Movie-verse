@@ -7,6 +7,7 @@ import { Hero } from './components/Hero';
 import { SearchSection } from './components/SearchSection';
 import { MoodDiscovery } from './components/MoodDiscovery';
 import { BrowseByCinema } from './components/BrowseByCinema';
+import { BrowseByGenre } from './components/BrowseByGenre';
 import { TrendingMovies } from './components/TrendingMovies';
 import { OttPlatforms } from './components/OttPlatforms';
 import { PopularGenres } from './components/PopularGenres';
@@ -14,7 +15,9 @@ import { PopularActors } from './components/PopularActors';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { ActorDetailsModal } from './components/ActorDetailsModal';
 import { CinemaDiscoveryModal } from './components/CinemaDiscoveryModal';
+import { GenreDiscoveryModal } from './components/GenreDiscoveryModal';
 import { WatchlistModal } from './components/WatchlistModal';
+
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { SearchModal } from './components/SearchModal';
 import { Footer } from './components/Footer';
@@ -32,9 +35,11 @@ export default function App() {
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const [selectedActorId, setSelectedActorId] = useState<number | null>(null);
   const [selectedCinemaId, setSelectedCinemaId] = useState<string | null>(null);
+  const [selectedGenreSlug, setSelectedGenreSlug] = useState<string | null>(null);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
 
   const loadInitialData = async () => {
     setIsLoading(true);
@@ -66,7 +71,7 @@ export default function App() {
     }
   };
 
-  // Handle URL path synchronization (/movie/:id, /actor/:id & /cinema/:cinema)
+  // Handle URL path synchronization (/movie/:id, /actor/:id, /cinema/:cinema & /genre/:genre)
   useEffect(() => {
     const handleUrlChange = () => {
       const path = window.location.pathname;
@@ -75,6 +80,7 @@ export default function App() {
       const movieMatch = path.match(/\/movie\/(\d+)/) || hash.match(/#\/movie\/(\d+)/);
       const actorMatch = path.match(/\/actor\/(\d+)/) || hash.match(/#\/actor\/(\d+)/);
       const cinemaMatch = path.match(/\/cinema\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/cinema\/([a-zA-Z0-9_-]+)/);
+      const genreMatch = path.match(/\/genre\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/genre\/([a-zA-Z0-9_-]+)/);
 
       if (movieMatch) {
         const id = parseInt(movieMatch[1], 10);
@@ -94,6 +100,12 @@ export default function App() {
         setSelectedCinemaId(cinemaMatch[1]);
       } else {
         setSelectedCinemaId(null);
+      }
+
+      if (genreMatch) {
+        setSelectedGenreSlug(genreMatch[1]);
+      } else {
+        setSelectedGenreSlug(null);
       }
     };
 
@@ -134,6 +146,18 @@ export default function App() {
       }
     }
   };
+
+  const handleSelectGenre = (genreSlug: string | null) => {
+    setSelectedGenreSlug(genreSlug);
+    if (genreSlug) {
+      window.history.pushState({ genreSlug }, '', `/genre/${genreSlug}`);
+    } else {
+      if (window.location.pathname.startsWith('/genre/')) {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
+
 
   useEffect(() => {
     loadInitialData();
@@ -187,8 +211,12 @@ export default function App() {
           genreMap={genreMap}
         />
 
+        {/* Explore by Genre Section */}
+        <BrowseByGenre onSelectGenre={handleSelectGenre} />
+
         {/* Browse by Cinema Section */}
         <BrowseByCinema onSelectCinema={handleSelectCinema} />
+
 
         {/* Trending Movies Section */}
         <TrendingMovies
@@ -253,6 +281,14 @@ export default function App() {
           onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
+
+        <GenreDiscoveryModal
+          genreSlug={selectedGenreSlug}
+          onClose={() => handleSelectGenre(null)}
+          onSelectMovie={handleSelectMovie}
+          genreMap={genreMap}
+        />
+
 
         <WatchlistModal
           isOpen={isWatchlistOpen}

@@ -516,5 +516,66 @@ export const tmdbService = {
       };
     }
   },
+
+  // Discover Movies by Genre with advanced filtering (Sort, Year, Language, Pagination)
+  getMoviesByGenreAdvanced: async (
+    genreId: number,
+    sortBy: 'popular' | 'top_rated' | 'newest' | 'oldest' | 'upcoming' = 'popular',
+    year?: number | null,
+    languageCode?: string | null,
+    page = 1
+  ): Promise<{ results: Movie[]; totalPages: number; totalResults: number }> => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const params: Record<string, string | number> = {
+        with_genres: genreId,
+        page,
+      };
+
+      if (sortBy === 'popular') {
+        params.sort_by = 'popularity.desc';
+      } else if (sortBy === 'top_rated') {
+        params.sort_by = 'vote_average.desc';
+        params['vote_count.gte'] = 50;
+      } else if (sortBy === 'newest') {
+        params.sort_by = 'primary_release_date.desc';
+        params['primary_release_date.lte'] = today;
+      } else if (sortBy === 'oldest') {
+        params.sort_by = 'primary_release_date.asc';
+        params['primary_release_date.gte'] = '1900-01-01';
+      } else if (sortBy === 'upcoming') {
+        params.sort_by = 'primary_release_date.asc';
+        params['primary_release_date.gte'] = today;
+      }
+
+      if (year && !isNaN(year)) {
+        params.primary_release_year = year;
+      }
+
+      if (languageCode && languageCode.trim().length > 0) {
+        params.with_original_language = languageCode.trim();
+      }
+
+      const res = await fetchFromTmdb<{
+        results: Movie[];
+        total_pages: number;
+        total_results: number;
+      }>('/discover/movie', params);
+
+      return {
+        results: res.results || [],
+        totalPages: res.total_pages || 1,
+        totalResults: res.total_results || 0,
+      };
+    } catch (error) {
+      console.error('Error fetching movies by genre:', error);
+      return {
+        results: FALLBACK_MOVIES.filter((m) => m.genre_ids?.includes(genreId)) || FALLBACK_MOVIES,
+        totalPages: 1,
+        totalResults: FALLBACK_MOVIES.length,
+      };
+    }
+  },
 };
+
 

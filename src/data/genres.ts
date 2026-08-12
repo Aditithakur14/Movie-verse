@@ -1,0 +1,238 @@
+export interface GenreConfig {
+  id: number; // TMDB Genre ID
+  slug: string; // URL-friendly slug
+  name: string; // Display Name
+  emoji: string; // Icon / Emoji
+  description: string; // Short Description
+  bgGradient: string; // Card background gradient
+  borderGlow: string; // Card hover glow
+  bannerImage: string; // Cinematic banner background
+  accentColor: string; // Text accent color
+}
+
+export const GENRE_CONFIGS: GenreConfig[] = [
+  {
+    id: 28,
+    slug: 'action',
+    name: 'Action',
+    emoji: '🔥',
+    description: 'Adrenaline-fueled fights, high-speed chases, martial arts & explosive blockbusters.',
+    bgGradient: 'from-red-600/30 via-orange-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-red-500/50 hover:shadow-red-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-red-400',
+  },
+  {
+    id: 18,
+    slug: 'drama',
+    name: 'Drama',
+    emoji: '🎭',
+    description: 'Intense human emotion, gripping character arcs, social dilemmas & powerful stories.',
+    bgGradient: 'from-blue-600/30 via-slate-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-blue-500/50 hover:shadow-blue-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-blue-400',
+  },
+  {
+    id: 35,
+    slug: 'comedy',
+    name: 'Comedy',
+    emoji: '😂',
+    description: 'Hilarious antics, sharp wit, feel-good humor, satirical slapstick & laugh-out-loud moments.',
+    bgGradient: 'from-amber-600/30 via-yellow-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-amber-500/50 hover:shadow-amber-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-amber-400',
+  },
+  {
+    id: 10749,
+    slug: 'romance',
+    name: 'Romance',
+    emoji: '❤️',
+    description: 'Passionate love stories, heart-wrenching heartbreak, soulmates & tender connections.',
+    bgGradient: 'from-rose-600/30 via-pink-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-rose-500/50 hover:shadow-rose-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-rose-400',
+  },
+  {
+    id: 27,
+    slug: 'horror',
+    name: 'Horror',
+    emoji: '👻',
+    description: 'Chilling scares, supernatural hauntings, slasher thrillers & terrifying nightmares.',
+    bgGradient: 'from-purple-900/40 via-violet-950/60 to-slate-950/90',
+    borderGlow: 'hover:border-purple-500/50 hover:shadow-purple-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-purple-400',
+  },
+  {
+    id: 53,
+    slug: 'thriller',
+    name: 'Thriller',
+    emoji: '🧠',
+    description: 'Mind-bending suspense, psychological games, high-stakes espionage & plot twists.',
+    bgGradient: 'from-teal-600/30 via-cyan-950/40 to-slate-900/90',
+    borderGlow: 'hover:border-teal-500/50 hover:shadow-teal-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-teal-400',
+  },
+  {
+    id: 878,
+    slug: 'science-fiction',
+    name: 'Science Fiction',
+    emoji: '🚀',
+    description: 'Futuristic worlds, deep space exploration, AI revolutions & dystopian futures.',
+    bgGradient: 'from-cyan-600/30 via-indigo-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-cyan-500/50 hover:shadow-cyan-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-cyan-400',
+  },
+  {
+    id: 14,
+    slug: 'fantasy',
+    name: 'Fantasy',
+    emoji: '🏰',
+    description: 'Magical realms, mythical beasts, ancient sorcery & grand legendary quests.',
+    bgGradient: 'from-indigo-600/30 via-purple-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-indigo-500/50 hover:shadow-indigo-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-indigo-400',
+  },
+  {
+    id: 9648,
+    slug: 'mystery',
+    name: 'Mystery',
+    emoji: '🕵️',
+    description: 'Complex whodunits, unraveled secrets, cryptic clues & noir detective cases.',
+    bgGradient: 'from-slate-700/40 via-zinc-900/60 to-slate-900/90',
+    borderGlow: 'hover:border-slate-400/50 hover:shadow-slate-400/20',
+    bannerImage: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-slate-300',
+  },
+  {
+    id: 12,
+    slug: 'adventure',
+    name: 'Adventure',
+    emoji: '⚔️',
+    description: 'Thrilling expeditions, uncharted wilderness, treasure hunts & heroic journeys.',
+    bgGradient: 'from-emerald-600/30 via-green-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-emerald-500/50 hover:shadow-emerald-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-emerald-400',
+  },
+  {
+    id: 10751,
+    slug: 'family',
+    name: 'Family',
+    emoji: '👨‍👩‍👧',
+    description: 'Wholesome entertainment, magical adventures & heartwarming stories for all ages.',
+    bgGradient: 'from-sky-600/30 via-blue-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-sky-500/50 hover:shadow-sky-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-sky-400',
+  },
+  {
+    id: 16,
+    slug: 'animation',
+    name: 'Animation',
+    emoji: '🎨',
+    description: 'Vibrant animated wonderlands, anime masterpieces & groundbreaking CGI art.',
+    bgGradient: 'from-fuchsia-600/30 via-pink-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-fuchsia-400',
+  },
+  {
+    id: 80,
+    slug: 'crime',
+    name: 'Crime',
+    emoji: '🔫',
+    description: 'Underworld mob sagas, cunning heist masterminds & intense law enforcement duels.',
+    bgGradient: 'from-stone-700/40 via-zinc-900/60 to-slate-900/90',
+    borderGlow: 'hover:border-red-600/50 hover:shadow-red-600/20',
+    bannerImage: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-red-400',
+  },
+  {
+    id: 36,
+    slug: 'history',
+    name: 'History',
+    emoji: '📜',
+    description: 'Sweeping historical epics, biographical triumphs & epoch-defining real-world events.',
+    bgGradient: 'from-yellow-700/30 via-amber-950/50 to-slate-900/90',
+    borderGlow: 'hover:border-yellow-500/50 hover:shadow-yellow-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-yellow-400',
+  },
+  {
+    id: 10402,
+    slug: 'music',
+    name: 'Music',
+    emoji: '🎵',
+    description: 'Captivating musical performances, rockstar biopics & rhythm-infused storytelling.',
+    bgGradient: 'from-violet-600/30 via-purple-900/40 to-slate-900/90',
+    borderGlow: 'hover:border-violet-500/50 hover:shadow-violet-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-violet-400',
+  },
+  {
+    id: 10752,
+    slug: 'war',
+    name: 'War',
+    emoji: '⚔️',
+    description: 'Frontline battlefield heroism, military tactics & profound historical combat stories.',
+    bgGradient: 'from-amber-800/30 via-stone-900/60 to-slate-900/90',
+    borderGlow: 'hover:border-orange-500/50 hover:shadow-orange-500/20',
+    bannerImage: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-orange-400',
+  },
+  {
+    id: 37,
+    slug: 'western',
+    name: 'Western',
+    emoji: '🤠',
+    description: 'Frontier duels, rugged outlaws, bounty hunters & dusty wild-west sagas.',
+    bgGradient: 'from-orange-700/30 via-amber-950/50 to-slate-900/90',
+    borderGlow: 'hover:border-amber-600/50 hover:shadow-amber-600/20',
+    bannerImage: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-amber-500',
+  },
+  {
+    id: 99,
+    slug: 'documentary',
+    name: 'Documentary',
+    emoji: '🎞️',
+    description: 'Eye-opening investigations, breathtaking nature marvels & real-world human truths.',
+    bgGradient: 'from-neutral-700/40 via-zinc-900/60 to-slate-900/90',
+    borderGlow: 'hover:border-neutral-400/50 hover:shadow-neutral-400/20',
+    bannerImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200&auto=format&fit=crop',
+    accentColor: 'text-neutral-300',
+  },
+];
+
+export const getGenreBySlug = (slug: string): GenreConfig | undefined => {
+  const normalized = slug.trim().toLowerCase();
+  return GENRE_CONFIGS.find(
+    (g) => g.slug === normalized || g.name.toLowerCase().replace(/\s+/g, '-') === normalized
+  );
+};
+
+export const getGenreById = (id: number): GenreConfig | undefined => {
+  return GENRE_CONFIGS.find((g) => g.id === id);
+};
+
+export const GENRE_LANGUAGES = [
+  { code: '', label: 'All Languages' },
+  { code: 'en', label: 'English 🇺🇸' },
+  { code: 'hi', label: 'Hindi 🇮🇳' },
+  { code: 'te', label: 'Telugu 🇮🇳' },
+  { code: 'ta', label: 'Tamil 🇮🇳' },
+  { code: 'ml', label: 'Malayalam 🇮🇳' },
+  { code: 'kn', label: 'Kannada 🇮🇳' },
+  { code: 'ko', label: 'Korean 🇰🇷' },
+  { code: 'ja', label: 'Japanese 🇯🇵' },
+  { code: 'zh', label: 'Chinese 🇨🇳' },
+  { code: 'es', label: 'Spanish 🇪🇸' },
+  { code: 'fr', label: 'French 🇫🇷' },
+];
