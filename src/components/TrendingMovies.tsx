@@ -4,6 +4,7 @@ import { Movie } from '../types/tmdb';
 import { MovieCard } from './MovieCard';
 
 interface TrendingMoviesProps {
+  id?: string;
   movies: Movie[];
   onSelectMovie: (movieId: number) => void;
   genreMap?: Record<number, string>;
@@ -12,6 +13,7 @@ interface TrendingMoviesProps {
 }
 
 export const TrendingMovies: React.FC<TrendingMoviesProps> = ({
+  id = 'trending-section',
   movies,
   onSelectMovie,
   genreMap = {},
@@ -27,7 +29,7 @@ export const TrendingMovies: React.FC<TrendingMoviesProps> = ({
   };
 
   return (
-    <section id="trending-section" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <section id={id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
       {/* Header with Scroll Controls */}
       <div className="flex items-end justify-between mb-6">
         <div>

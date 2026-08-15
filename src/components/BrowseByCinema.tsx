@@ -8,7 +8,7 @@ interface BrowseByCinemaProps {
 
 export const BrowseByCinema: React.FC<BrowseByCinemaProps> = ({ onSelectCinema }) => {
   return (
-    <section className="relative max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-16 space-y-8">
+    <section id="browse-by-cinema-section" className="relative max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-16 space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
         <div className="space-y-2">

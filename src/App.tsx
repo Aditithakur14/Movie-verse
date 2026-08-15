@@ -262,6 +262,7 @@ export default function App() {
 
         {/* Top Rated Blockbusters Section */}
         <TrendingMovies
+          id="top-rated-section"
           movies={topRatedMovies}
           onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
