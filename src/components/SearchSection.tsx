@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Loader2, Film, Sparkles, Filter } from 'lucide-react';
+import { Search, X, Loader2, Film, Sparkles, Filter, SlidersHorizontal } from 'lucide-react';
 import { Movie } from '../types/tmdb';
 import { tmdbService } from '../services/tmdbApi';
 import { MovieCard } from './MovieCard';
@@ -8,12 +8,14 @@ interface SearchSectionProps {
   onSelectMovie: (movieId: number) => void;
   genreMap?: Record<number, string>;
   initialQuery?: string;
+  onOpenAdvancedSearch?: (query?: string) => void;
 }
 
 export const SearchSection: React.FC<SearchSectionProps> = ({
   onSelectMovie,
   genreMap = {},
   initialQuery = '',
+  onOpenAdvancedSearch,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Movie[]>([]);
@@ -95,31 +97,51 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             ) : null}
           </div>
 
-          {/* Quick Filter Controls when results exist */}
-          {results.length > 0 && (
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400 px-2">
+          {/* Quick Filter Controls when results exist or Search Bar sub-actions */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400 px-2">
+            {results.length > 0 ? (
               <span className="font-medium text-gray-300">
                 Found {filteredResults.length} movies for &quot;{query}&quot;
               </span>
-              <div className="flex items-center gap-2">
-                <Filter className="h-3.5 w-3.5 text-gray-400" />
-                <span>Min Rating:</span>
-                {[0, 6, 7, 8].map((rating) => (
-                  <button
-                    key={rating}
-                    onClick={() => setFilterRating(rating)}
-                    className={`px-2.5 py-1 rounded-md transition-colors ${
-                      filterRating === rating
-                        ? 'bg-red-600 text-white font-bold'
-                        : 'bg-white/5 hover:bg-white/10 text-gray-300'
-                    }`}
-                  >
-                    {rating === 0 ? 'All' : `${rating}+ ⭐`}
-                  </button>
-                ))}
-              </div>
+            ) : (
+              <span className="text-gray-400">
+                Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-gray-300 font-mono">Cmd/Ctrl + K</kbd> to search from anywhere
+              </span>
+            )}
+
+            <div className="flex items-center gap-3">
+              {results.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Filter className="h-3.5 w-3.5 text-gray-400" />
+                  <span>Rating:</span>
+                  {[0, 7, 8].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setFilterRating(rating)}
+                      className={`px-2 py-0.5 rounded-md transition-colors ${
+                        filterRating === rating
+                          ? 'bg-red-600 text-white font-bold'
+                          : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                      }`}
+                    >
+                      {rating === 0 ? 'All' : `${rating}+ ⭐`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {onOpenAdvancedSearch && (
+                <button
+                  onClick={() => onOpenAdvancedSearch(query)}
+                  id="open-advanced-search-hero-btn"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 font-bold transition-all"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <span>Advanced Search & Filters</span>
+                </button>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Results Grid */}

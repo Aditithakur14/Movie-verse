@@ -84,6 +84,11 @@ export default function App() {
       const cinemaMatch = path.match(/\/cinema\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/cinema\/([a-zA-Z0-9_-]+)/);
       const genreMatch = path.match(/\/genre\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/genre\/([a-zA-Z0-9_-]+)/);
       const ottMatch = path.match(/\/ott\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/ott\/([a-zA-Z0-9_-]+)/);
+      const searchMatch = path.startsWith('/search') || hash.startsWith('#/search');
+
+      if (searchMatch) {
+        setIsSearchModalOpen(true);
+      }
 
       if (movieMatch) {
         const id = parseInt(movieMatch[1], 10);
@@ -223,6 +228,14 @@ export default function App() {
         <SearchSection
           onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
+          onOpenAdvancedSearch={(q) => {
+            setIsSearchModalOpen(true);
+            if (q) {
+              window.history.pushState({}, '', `/search?q=${encodeURIComponent(q)}`);
+            } else {
+              window.history.pushState({}, '', '/search');
+            }
+          }}
         />
 
         {/* Mood Discovery Section */}
@@ -335,6 +348,7 @@ export default function App() {
           onClose={() => setIsSearchModalOpen(false)}
           onSelectMovie={handleSelectMovie}
           onSelectActor={handleSelectActor}
+          genreMap={genreMap}
         />
       </div>
     </WatchlistProvider>

@@ -1,4 +1,5 @@
-import { Actor, ActorDetails, Genre, Movie, MovieDetails, MovieWatchProviders, SearchResultItem, WatchProvider } from '../types/tmdb';
+import { Actor, ActorDetails, Genre, Movie, MovieDetails, MovieFilterParams, MovieWatchProviders, SearchResultItem, WatchProvider } from '../types/tmdb';
+import { getCinemaById } from '../data/cinemas';
 
 // Known working public TMDB API keys for high-availability access
 const BACKUP_TMDB_KEYS = [
@@ -55,15 +56,27 @@ export const getLogoUrl = (path: string | null): string => {
   return `${IMAGE_BASE_URL}/w92${path}`;
 };
 
-async function fetchFromTmdb<T>(endpoint: string, params: Record<string, string | number> = {}, keyAttempt = 0): Promise<T> {
+async function fetchFromTmdb<T>(
+  endpoint: string,
+  params: Record<string, string | number | boolean | undefined | null> = {},
+  keyAttempt = 0
+): Promise<T> {
   const customKey = localStorage.getItem('movieverse_tmdb_key');
   const envKey = import.meta.env.VITE_TMDB_API_KEY;
-  const apiKey = customKey || (envKey && envKey.trim().length > 0 ? envKey.trim() : BACKUP_TMDB_KEYS[(activeKeyIndex + keyAttempt) % BACKUP_TMDB_KEYS.length]);
+  const apiKey =
+    customKey ||
+    (envKey && envKey.trim().length > 0
+      ? envKey.trim()
+      : BACKUP_TMDB_KEYS[(activeKeyIndex + keyAttempt) % BACKUP_TMDB_KEYS.length]);
+
+  const cleanEntries: [string, string][] = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null)
+    .map(([k, v]) => [k, String(v)]);
 
   const queryParams = new URLSearchParams({
     api_key: apiKey,
     language: 'en-US',
-    ...Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])),
+    ...Object.fromEntries(cleanEntries),
   });
 
   const url = `${BASE_URL}${endpoint}?${queryParams.toString()}`;
@@ -659,6 +672,211 @@ export const tmdbService = {
         results: FALLBACK_MOVIES,
         totalPages: 1,
         totalResults: FALLBACK_MOVIES.length,
+      };
+    }
+  },
+
+  // Advanced Movie Search with Multi-Criteria Filtering
+  advancedSearchMovies: async (
+    filterParams: MovieFilterParams
+  ): Promise<{ results: Movie[]; totalPages: number; totalResults: number }> => {
+    try {
+      const {
+        query,
+        genreId,
+        languageCode,
+        cinemaId,
+        yearType = 'any',
+        year,
+        fromYear,
+        toYear,
+        minRating,
+        maxRating,
+        ottProviderId,
+        ottRegion = 'IN',
+        releaseStatus = 'all',
+        sortBy = 'popular',
+        page = 1,
+      } = filterParams;
+
+      const trimmedQuery = query ? query.trim() : '';
+
+      // Check if user has active discover filters
+      const hasAdvancedFilters = Boolean(
+        genreId ||
+        languageCode ||
+        cinemaId ||
+        (yearType === 'specific' && year) ||
+        (yearType === 'range' && (fromYear || toYear)) ||
+        (minRating !== null && minRating !== undefined && minRating > 0) ||
+        (maxRating !== null && maxRating !== undefined && maxRating < 10) ||
+        ottProviderId ||
+        (releaseStatus && releaseStatus !== 'all') ||
+        (sortBy && sortBy !== 'popular')
+      );
+
+      const today = new Date().toISOString().split('T')[0];
+
+      // If user provided a text query without complex discover filters, use TMDB /search/movie
+      if (trimmedQuery && !hasAdvancedFilters) {
+        const res = await fetchFromTmdb<{
+          results: Movie[];
+          total_pages: number;
+          total_results: number;
+        }>('/search/movie', {
+          query: trimmedQuery,
+          page,
+          include_adult: 'false',
+        });
+
+        return {
+          results: res.results || [],
+          totalPages: res.total_pages || 1,
+          totalResults: res.total_results || 0,
+        };
+      }
+
+      // Build TMDB /discover/movie parameters
+      const params: Record<string, string | number | boolean> = {
+        page,
+        include_adult: false,
+      };
+
+      // 1. Genre filter
+      if (genreId && !isNaN(genreId)) {
+        params.with_genres = genreId;
+      }
+
+      // 2. Cinema or Language filter
+      if (cinemaId) {
+        const cinema = getCinemaById(cinemaId);
+        if (cinema) {
+          params.with_original_language = cinema.languageCode;
+          if (cinema.countryCode === 'IN') {
+            params.with_origin_country = 'IN';
+          }
+        }
+      } else if (languageCode && languageCode.trim().length > 0) {
+        params.with_original_language = languageCode.trim();
+      }
+
+      // 3. Release Year filter
+      if (yearType === 'specific' && year && !isNaN(year)) {
+        params.primary_release_year = year;
+      } else if (yearType === 'range') {
+        if (fromYear && !isNaN(fromYear)) {
+          params['primary_release_date.gte'] = `${fromYear}-01-01`;
+        }
+        if (toYear && !isNaN(toYear)) {
+          params['primary_release_date.lte'] = `${toYear}-12-31`;
+        }
+      } else if (year && !isNaN(year)) {
+        params.primary_release_year = year;
+      }
+
+      // 4. Rating filters
+      if (minRating !== null && minRating !== undefined && minRating > 0) {
+        params['vote_average.gte'] = minRating;
+        params['vote_count.gte'] = minRating >= 7 ? 20 : 10;
+      }
+      if (maxRating !== null && maxRating !== undefined && maxRating < 10) {
+        params['vote_average.lte'] = maxRating;
+      }
+
+      // 5. OTT Watch Provider filter
+      if (ottProviderId && !isNaN(ottProviderId)) {
+        params.with_watch_providers = ottProviderId;
+        params.watch_region = ottRegion || 'IN';
+      }
+
+      // 6. Release Status
+      if (releaseStatus === 'released') {
+        params['primary_release_date.lte'] = today;
+      } else if (releaseStatus === 'upcoming') {
+        params['primary_release_date.gte'] = today;
+      } else if (releaseStatus === 'now_playing') {
+        const d = new Date();
+        d.setDate(d.getDate() - 45);
+        params['primary_release_date.gte'] = d.toISOString().split('T')[0];
+        params['primary_release_date.lte'] = today;
+      }
+
+      // 7. Sort By
+      if (sortBy === 'popular') {
+        params.sort_by = 'popularity.desc';
+      } else if (sortBy === 'top_rated' || sortBy === 'highest_rated') {
+        params.sort_by = 'vote_average.desc';
+        if (!params['vote_count.gte']) {
+          params['vote_count.gte'] = 50;
+        }
+      } else if (sortBy === 'newest') {
+        params.sort_by = 'primary_release_date.desc';
+        if (releaseStatus !== 'upcoming') {
+          params['primary_release_date.lte'] = today;
+        }
+      } else if (sortBy === 'oldest') {
+        params.sort_by = 'primary_release_date.asc';
+        params['primary_release_date.gte'] = '1920-01-01';
+      } else if (sortBy === 'most_voted') {
+        params.sort_by = 'vote_count.desc';
+      }
+
+      // If user typed a query AND also configured filters:
+      if (trimmedQuery) {
+        const searchParams: Record<string, string | number | boolean> = {
+          query: trimmedQuery,
+          page,
+          include_adult: false,
+        };
+        if (params.primary_release_year) {
+          searchParams.primary_release_year = params.primary_release_year;
+        }
+        if (params.with_original_language) {
+          searchParams.language = params.with_original_language;
+        }
+
+        const res = await fetchFromTmdb<{
+          results: Movie[];
+          total_pages: number;
+          total_results: number;
+        }>('/search/movie', searchParams);
+
+        let filtered = res.results || [];
+        if (genreId) {
+          filtered = filtered.filter((m) => m.genre_ids?.includes(genreId));
+        }
+        if (minRating) {
+          filtered = filtered.filter((m) => (m.vote_average || 0) >= minRating);
+        }
+        if (maxRating) {
+          filtered = filtered.filter((m) => (m.vote_average || 0) <= maxRating);
+        }
+
+        return {
+          results: filtered,
+          totalPages: res.total_pages || 1,
+          totalResults: filtered.length,
+        };
+      }
+
+      // Query TMDB Discover API
+      const res = await fetchFromTmdb<{
+        results: Movie[];
+        total_pages: number;
+        total_results: number;
+      }>('/discover/movie', params);
+
+      return {
+        results: res.results || [],
+        totalPages: res.total_pages || 1,
+        totalResults: res.total_results || 0,
+      };
+    } catch (error) {
+      console.error('Error in advanced movie search:', error);
+      return {
+        results: [],
+        totalPages: 0,
+        totalResults: 0,
       };
     }
   },

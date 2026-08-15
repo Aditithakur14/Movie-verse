@@ -190,3 +190,21 @@ export interface SearchResultItem {
   voteCount?: number;
 }
 
+export interface MovieFilterParams {
+  query?: string;
+  genreId?: number | null;
+  languageCode?: string | null;
+  cinemaId?: string | null;
+  yearType?: 'any' | 'specific' | 'range';
+  year?: number | null;
+  fromYear?: number | null;
+  toYear?: number | null;
+  minRating?: number | null;
+  maxRating?: number | null;
+  ottProviderId?: number | null;
+  ottRegion?: string;
+  releaseStatus?: 'all' | 'released' | 'upcoming' | 'now_playing' | 'popular';
+  sortBy?: 'popular' | 'top_rated' | 'newest' | 'oldest' | 'highest_rated' | 'most_voted';
+  page?: number;
+}
+
