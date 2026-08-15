@@ -16,6 +16,7 @@ import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { ActorDetailsModal } from './components/ActorDetailsModal';
 import { CinemaDiscoveryModal } from './components/CinemaDiscoveryModal';
 import { GenreDiscoveryModal } from './components/GenreDiscoveryModal';
+import { OttDiscoveryModal } from './components/OttDiscoveryModal';
 import { WatchlistModal } from './components/WatchlistModal';
 
 import { ApiKeyModal } from './components/ApiKeyModal';
@@ -36,6 +37,7 @@ export default function App() {
   const [selectedActorId, setSelectedActorId] = useState<number | null>(null);
   const [selectedCinemaId, setSelectedCinemaId] = useState<string | null>(null);
   const [selectedGenreSlug, setSelectedGenreSlug] = useState<string | null>(null);
+  const [selectedOttProvider, setSelectedOttProvider] = useState<string | null>(null);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -81,6 +83,7 @@ export default function App() {
       const actorMatch = path.match(/\/actor\/(\d+)/) || hash.match(/#\/actor\/(\d+)/);
       const cinemaMatch = path.match(/\/cinema\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/cinema\/([a-zA-Z0-9_-]+)/);
       const genreMatch = path.match(/\/genre\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/genre\/([a-zA-Z0-9_-]+)/);
+      const ottMatch = path.match(/\/ott\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/ott\/([a-zA-Z0-9_-]+)/);
 
       if (movieMatch) {
         const id = parseInt(movieMatch[1], 10);
@@ -106,6 +109,12 @@ export default function App() {
         setSelectedGenreSlug(genreMatch[1]);
       } else {
         setSelectedGenreSlug(null);
+      }
+
+      if (ottMatch) {
+        setSelectedOttProvider(ottMatch[1]);
+      } else {
+        setSelectedOttProvider(null);
       }
     };
 
@@ -153,6 +162,17 @@ export default function App() {
       window.history.pushState({ genreSlug }, '', `/genre/${genreSlug}`);
     } else {
       if (window.location.pathname.startsWith('/genre/')) {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
+
+  const handleSelectOttProvider = (providerSlug: string | null) => {
+    setSelectedOttProvider(providerSlug);
+    if (providerSlug) {
+      window.history.pushState({ providerSlug }, '', `/ott/${providerSlug}`);
+    } else {
+      if (window.location.pathname.startsWith('/ott/')) {
         window.history.pushState({}, '', '/');
       }
     }
@@ -238,6 +258,7 @@ export default function App() {
 
         {/* OTT Streaming Services Section */}
         <OttPlatforms
+          onSelectOttProvider={handleSelectOttProvider}
           onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />
@@ -285,6 +306,13 @@ export default function App() {
         <GenreDiscoveryModal
           genreSlug={selectedGenreSlug}
           onClose={() => handleSelectGenre(null)}
+          onSelectMovie={handleSelectMovie}
+          genreMap={genreMap}
+        />
+
+        <OttDiscoveryModal
+          providerSlug={selectedOttProvider}
+          onClose={() => handleSelectOttProvider(null)}
           onSelectMovie={handleSelectMovie}
           genreMap={genreMap}
         />

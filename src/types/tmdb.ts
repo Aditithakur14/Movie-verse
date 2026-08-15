@@ -45,6 +45,8 @@ export interface WatchProvider {
 export interface MovieWatchProviders {
   link?: string;
   flatrate?: WatchProvider[];
+  free?: WatchProvider[];
+  ads?: WatchProvider[];
   rent?: WatchProvider[];
   buy?: WatchProvider[];
 }

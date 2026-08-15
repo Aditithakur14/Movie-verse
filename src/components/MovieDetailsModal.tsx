@@ -27,6 +27,7 @@ import {
 import { MovieDetails, Movie, CastMember, CrewMember, Video, ImageAsset } from '../types/tmdb';
 import { tmdbService, getImageUrl, getProfileUrl, getLogoUrl } from '../services/tmdbApi';
 import { useWatchlist } from '../context/WatchlistContext';
+import { WhereToWatchSection } from './WhereToWatchSection';
 
 interface MovieDetailsModalProps {
   movieId: number | null;
@@ -474,62 +475,11 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 </div>
               </div>
 
-              {/* Streaming Availability (Watch Providers) */}
-              {watchProviders && (watchProviders.flatrate || watchProviders.rent || watchProviders.buy) && (
-                <div className="rounded-3xl bg-white/5 border border-white/10 p-6 sm:p-8 space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-widest">
-                    <Tv className="h-4 w-4" />
-                    <span>Streaming Availability</span>
-                  </div>
-
-                  <div className="space-y-4">
-                    {watchProviders.flatrate && watchProviders.flatrate.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-400 mb-2">Stream Subscription:</p>
-                        <div className="flex flex-wrap gap-3">
-                          {watchProviders.flatrate.map((provider) => (
-                            <div
-                              key={provider.provider_id}
-                              className="flex items-center gap-2.5 rounded-2xl bg-black/60 px-3.5 py-2 border border-white/10"
-                            >
-                              <img
-                                src={getLogoUrl(provider.logo_path)}
-                                alt={provider.provider_name}
-                                className="h-7 w-7 rounded-lg object-cover"
-                              />
-                              <span className="text-xs font-bold text-gray-200">{provider.provider_name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {(watchProviders.rent || watchProviders.buy) && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-400 mb-2">Rent / Buy:</p>
-                        <div className="flex flex-wrap gap-3">
-                          {[...(watchProviders.rent || []), ...(watchProviders.buy || [])]
-                            .filter((v, i, a) => a.findIndex((t) => t.provider_id === v.provider_id) === i)
-                            .slice(0, 6)
-                            .map((provider) => (
-                              <div
-                                key={provider.provider_id}
-                                className="flex items-center gap-2.5 rounded-2xl bg-black/40 px-3 py-1.5 border border-white/5 text-gray-300"
-                              >
-                                <img
-                                  src={getLogoUrl(provider.logo_path)}
-                                  alt={provider.provider_name}
-                                  className="h-6 w-6 rounded-md object-cover"
-                                />
-                                <span className="text-xs font-medium">{provider.provider_name}</span>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Where to Watch / OTT Availability Section */}
+              <WhereToWatchSection
+                movieId={details.id}
+                initialWatchProviders={details['watch/providers']?.results}
+              />
             </div>
 
             {/* Right Col: Financial & Production Specs */}

@@ -1,177 +1,72 @@
-import React, { useState } from 'react';
-import { Tv, Loader2, Sparkles, Film } from 'lucide-react';
-import { OttPlatform, Movie } from '../types/tmdb';
-import { tmdbService } from '../services/tmdbApi';
-import { MovieCard } from './MovieCard';
-
-const OTT_PLATFORMS: OttPlatform[] = [
-  {
-    id: 'netflix',
-    name: 'Netflix',
-    providerId: 8,
-    color: 'from-red-600 via-red-800 to-black',
-    badgeBg: 'bg-red-600',
-    description: 'Blockbuster originals, TV shows & exclusives',
-  },
-  {
-    id: 'prime',
-    name: 'Prime Video',
-    providerId: 9,
-    color: 'from-blue-600 via-cyan-800 to-black',
-    badgeBg: 'bg-blue-600',
-    description: 'Award-winning Amazon Originals & movies',
-  },
-  {
-    id: 'disney',
-    name: 'Disney+',
-    providerId: 337,
-    color: 'from-indigo-600 via-blue-900 to-black',
-    badgeBg: 'bg-indigo-600',
-    description: 'Disney, Marvel, Star Wars & Pixar sagas',
-  },
-  {
-    id: 'apple',
-    name: 'Apple TV+',
-    providerId: 350,
-    color: 'from-zinc-500 via-zinc-800 to-black',
-    badgeBg: 'bg-zinc-600',
-    description: 'Premium Apple Original movies & series',
-  },
-  {
-    id: 'hotstar',
-    name: 'JioHotstar',
-    providerId: 122,
-    color: 'from-amber-600 via-yellow-800 to-black',
-    badgeBg: 'bg-amber-600',
-    description: 'Indian blockbusters, HBO & live specials',
-  },
-  {
-    id: 'sonyliv',
-    name: 'Sony LIV',
-    providerId: 237,
-    color: 'from-purple-600 via-purple-900 to-black',
-    badgeBg: 'bg-purple-600',
-    description: 'Critically acclaimed dramas & originals',
-  },
-];
+import React from 'react';
+import { Tv, ArrowRight, ChevronRight, Play } from 'lucide-react';
+import { POPULAR_OTT_PLATFORMS, OttPlatformConfig } from '../data/ottProviders';
 
 interface OttPlatformsProps {
-  onSelectMovie: (movieId: number) => void;
+  onSelectOttProvider: (providerSlug: string) => void;
+  onSelectMovie?: (movieId: number) => void;
   genreMap?: Record<number, string>;
 }
 
-export const OttPlatforms: React.FC<OttPlatformsProps> = ({ onSelectMovie, genreMap = {} }) => {
-  const [selectedPlatform, setSelectedPlatform] = useState<OttPlatform | null>(null);
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handlePlatformClick = async (platform: OttPlatform) => {
-    setSelectedPlatform(platform);
-    setIsLoading(true);
-    try {
-      const data = await tmdbService.getMoviesByOttPlatform(platform.providerId, 'US');
-      setMovies(data);
-    } catch (err) {
-      console.error('Error fetching OTT platform movies:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export const OttPlatforms: React.FC<OttPlatformsProps> = ({ onSelectOttProvider }) => {
   return (
-    <section id="ott-platforms" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <section id="ott-platforms" className="relative max-w-7xl mx-auto px-4 sm:px-8 py-12 sm:py-16 space-y-8">
       {/* Section Header */}
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-widest mb-1.5">
-          <Tv className="h-4 w-4" />
-          <span>Streaming Service Availability</span>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-3 py-1 text-xs font-bold text-blue-400 uppercase tracking-widest">
+            <Tv className="h-3.5 w-3.5" />
+            <span>Streaming Networks</span>
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
+            <span>📺 Explore by Streaming Platform</span>
+          </h2>
+          <p className="text-sm text-gray-400 max-w-2xl leading-relaxed">
+            Browse movies directly available on your favorite streaming subscriptions — including Netflix, Amazon Prime Video, JioHotstar, Apple TV+, Sony LIV, ZEE5, & JioCinema.
+          </p>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-          Where to Stream Tonight
-        </h2>
-        <p className="text-xs sm:text-sm text-gray-400 mt-1">
-          Select your active subscription to browse movies available on that streaming service.
-        </p>
       </div>
 
-      {/* Platform Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
-        {OTT_PLATFORMS.map((platform) => {
-          const isSelected = selectedPlatform?.id === platform.id;
-          return (
-            <div
-              key={platform.id}
-              onClick={() => handlePlatformClick(platform)}
-              id={`ott-card-${platform.id}`}
-              className={`relative cursor-pointer rounded-2xl p-4 border transition-all duration-300 group overflow-hidden ${
-                isSelected
-                  ? 'bg-gradient-to-b from-blue-600/30 to-black border-blue-500 shadow-xl shadow-blue-500/20 scale-[1.02]'
-                  : 'bg-[#12151e] border-white/5 hover:border-white/20 hover:-translate-y-1'
-              }`}
-            >
-              {/* Card Subtle Top Highlight Bar */}
-              <div className={`h-1.5 w-full -mt-4 -mx-4 mb-3 ${platform.badgeBg}`} />
-
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-black text-white tracking-wider group-hover:text-blue-400 transition-colors">
-                  {platform.name}
-                </span>
-                <div className={`h-2.5 w-2.5 rounded-full ${platform.badgeBg}`} />
+      {/* Interactive Platform Cards Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5">
+        {POPULAR_OTT_PLATFORMS.map((platform: OttPlatformConfig) => (
+          <div
+            key={platform.id}
+            id={`ott-card-${platform.id}`}
+            onClick={() => onSelectOttProvider(platform.id)}
+            className={`group relative flex flex-col justify-between min-h-[190px] rounded-3xl border border-white/10 bg-gradient-to-br ${platform.color} p-5 overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-2xl shadow-xl`}
+          >
+            {/* Top Accent Pill */}
+            <div className="relative z-10 flex items-center justify-between mb-3">
+              <span className={`px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-white ${platform.badgeBg} shadow-md`}>
+                {platform.shortName || platform.name}
+              </span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-gray-300 group-hover:text-white group-hover:bg-blue-600 transition-colors">
+                <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
               </div>
+            </div>
 
-              <p className="line-clamp-2 text-[11px] text-gray-400 font-medium leading-tight">
+            {/* Platform Title & Description */}
+            <div className="relative z-10 space-y-1.5 my-auto">
+              <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-blue-300 transition-colors">
+                {platform.name}
+              </h3>
+              <p className="text-xs text-gray-300/90 leading-relaxed line-clamp-2 font-normal">
                 {platform.description}
               </p>
             </div>
-          );
-        })}
-      </div>
 
-      {/* Dynamic Streaming Movies Gallery */}
-      {selectedPlatform && (
-        <div className="mt-8 glass-panel rounded-2xl p-6 border border-white/10 animate-in fade-in duration-300">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className={`h-3 w-3 rounded-full ${selectedPlatform.badgeBg}`} />
-              <div>
-                <h3 className="text-xl font-extrabold text-white">
-                  Trending on <span className="text-blue-400">{selectedPlatform.name}</span>
-                </h3>
-                <p className="text-xs text-gray-400">{selectedPlatform.description}</p>
-              </div>
+            {/* Bottom Footer CTA */}
+            <div className="relative z-10 pt-3 mt-auto border-t border-white/10 flex items-center justify-between text-xs font-bold text-blue-300 group-hover:text-white">
+              <span className="flex items-center gap-1 group-hover:underline">
+                Browse Catalog
+                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+              <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-white" />
             </div>
-
-            <button
-              onClick={() => setSelectedPlatform(null)}
-              className="text-xs font-semibold text-gray-400 hover:text-white bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 transition-colors"
-            >
-              Close Platform
-            </button>
           </div>
-
-          {isLoading ? (
-            <div className="flex justify-center items-center py-16">
-              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-            </div>
-          ) : movies.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-              {movies.slice(0, 10).map((movie) => (
-                <MovieCard
-                  key={movie.id}
-                  movie={movie}
-                  onSelectMovie={onSelectMovie}
-                  genreMap={genreMap}
-                  className="w-full"
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-center py-8 text-sm text-gray-400">
-              No titles currently listed for this service in your region.
-            </p>
-          )}
-        </div>
-      )}
+        ))}
+      </div>
     </section>
   );
 };

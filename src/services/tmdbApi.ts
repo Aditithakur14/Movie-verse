@@ -1,4 +1,4 @@
-import { Actor, ActorDetails, Genre, Movie, MovieDetails, SearchResultItem } from '../types/tmdb';
+import { Actor, ActorDetails, Genre, Movie, MovieDetails, MovieWatchProviders, SearchResultItem, WatchProvider } from '../types/tmdb';
 
 // Known working public TMDB API keys for high-availability access
 const BACKUP_TMDB_KEYS = [
@@ -571,6 +571,92 @@ export const tmdbService = {
       console.error('Error fetching movies by genre:', error);
       return {
         results: FALLBACK_MOVIES.filter((m) => m.genre_ids?.includes(genreId)) || FALLBACK_MOVIES,
+        totalPages: 1,
+        totalResults: FALLBACK_MOVIES.length,
+      };
+    }
+  },
+
+  // Fetch watch providers for a specific movie directly
+  getMovieWatchProviders: async (movieId: number): Promise<Record<string, MovieWatchProviders>> => {
+    try {
+      const res = await fetchFromTmdb<{ results: Record<string, MovieWatchProviders> }>(
+        `/movie/${movieId}/watch/providers`
+      );
+      return res.results || {};
+    } catch (error) {
+      console.error(`Error fetching watch providers for movie #${movieId}:`, error);
+      return {};
+    }
+  },
+
+  // Fetch available watch providers in a region
+  getWatchProvidersByRegion: async (region = 'IN'): Promise<WatchProvider[]> => {
+    try {
+      const res = await fetchFromTmdb<{ results: WatchProvider[] }>(
+        '/watch/providers/movie',
+        { watch_region: region }
+      );
+      return res.results || [];
+    } catch (error) {
+      console.error(`Error fetching watch providers for region ${region}:`, error);
+      return [];
+    }
+  },
+
+  // Discover movies by OTT platform with advanced filters (Region, Sort, Genre, Release Year, Pagination)
+  getMoviesByOttPlatformAdvanced: async (
+    providerId: number,
+    region = 'IN',
+    sortBy: 'popular' | 'top_rated' | 'newest' | 'upcoming' = 'popular',
+    genreId?: number | null,
+    year?: number | null,
+    page = 1
+  ): Promise<{ results: Movie[]; totalPages: number; totalResults: number }> => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const params: Record<string, string | number> = {
+        with_watch_providers: providerId,
+        watch_region: region,
+        page,
+      };
+
+      if (sortBy === 'popular') {
+        params.sort_by = 'popularity.desc';
+      } else if (sortBy === 'top_rated') {
+        params.sort_by = 'vote_average.desc';
+        params['vote_count.gte'] = 20;
+      } else if (sortBy === 'newest') {
+        params.sort_by = 'primary_release_date.desc';
+        params['primary_release_date.lte'] = today;
+      } else if (sortBy === 'upcoming') {
+        params.sort_by = 'primary_release_date.asc';
+        params['primary_release_date.gte'] = today;
+      }
+
+      if (genreId && !isNaN(genreId)) {
+        params.with_genres = genreId;
+      }
+
+      if (year && !isNaN(year)) {
+        params.primary_release_year = year;
+      }
+
+      const res = await fetchFromTmdb<{
+        results: Movie[];
+        total_pages: number;
+        total_results: number;
+      }>('/discover/movie', params);
+
+      return {
+        results: res.results || [],
+        totalPages: res.total_pages || 1,
+        totalResults: res.total_results || 0,
+      };
+    } catch (error) {
+      console.error(`Error discovering movies for OTT provider #${providerId}:`, error);
+      return {
+        results: FALLBACK_MOVIES,
         totalPages: 1,
         totalResults: FALLBACK_MOVIES.length,
       };
