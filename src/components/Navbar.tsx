@@ -87,14 +87,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       id="main-header"
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         isScrolled
-          ? 'glass-nav py-3 shadow-xl'
-          : 'bg-gradient-to-b from-black/90 via-black/50 to-transparent py-5'
+          ? 'glass-nav py-3.5 shadow-xl'
+          : 'bg-gradient-to-b from-black/95 via-black/60 to-transparent py-5'
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 sm:gap-6">
-          {/* Left Area: MovieVerse Logo & Desktop Navigation */}
-          <div className="flex items-center gap-8 lg:gap-10 xl:gap-12 min-w-0">
+        <div className="flex items-center justify-between">
+          {/* Left Area: MovieVerse Logo & Spacious Desktop Navigation */}
+          <div className="flex items-center gap-10 lg:gap-14 xl:gap-16 min-w-0">
             {/* 1. MovieVerse Logo */}
             <div
               onClick={() => {
@@ -102,38 +102,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setIsSeeMoreOpen(false);
               }}
               id="brand-logo"
-              className="flex cursor-pointer items-center gap-2.5 group shrink-0"
+              className="flex cursor-pointer items-center gap-3 group shrink-0 select-none"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-red-800 text-white shadow-lg glow-red group-hover:scale-105 transition-transform duration-300">
                 <Film className="h-5 w-5" />
               </div>
-              <div>
-                <span className="text-xl font-black tracking-tight text-white group-hover:text-red-500 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tight text-white group-hover:text-red-500 transition-colors leading-tight">
                   Movie<span className="text-red-600">Verse</span>
                 </span>
-                <span className="hidden sm:block text-[10px] font-medium tracking-widest text-gray-400 uppercase -mt-1">
+                <span className="text-[9px] font-semibold tracking-widest text-gray-400 uppercase leading-none mt-0.5">
                   Discovery Engine
                 </span>
               </div>
             </div>
 
             {/* Desktop Navigation Links: Home | Moods | Trending | OTT Services | Genres | See More > */}
-            <nav className="hidden md:flex items-center gap-5 lg:gap-6 xl:gap-7">
-              {/* 2. Home (Active state) */}
+            <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-9">
+              {/* 2. Home (Active state with red underline) */}
               <button
                 onClick={() => {
                   onNavigateHome();
                   setIsSeeMoreOpen(false);
                 }}
-                className="text-sm font-bold text-white hover:text-red-500 transition-colors whitespace-nowrap"
+                className="relative text-sm font-semibold text-red-500 hover:text-red-400 transition-colors whitespace-nowrap py-1 flex flex-col items-center"
               >
-                Home
+                <span>Home</span>
+                <span className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-red-600 rounded-full" />
               </button>
 
               {/* 3. Moods */}
               <button
                 onClick={() => scrollToSection('mood-discovery')}
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap py-1"
               >
                 Moods
               </button>
@@ -141,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* 4. Trending */}
               <button
                 onClick={() => scrollToSection('trending-section')}
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap py-1"
               >
                 Trending
               </button>
@@ -149,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* 5. OTT Services */}
               <button
                 onClick={() => scrollToSection('ott-platforms')}
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap py-1"
               >
                 OTT Services
               </button>
@@ -157,21 +158,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* 6. Genres */}
               <button
                 onClick={() => scrollToSection('genres-section')}
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap py-1"
               >
                 Genres
               </button>
 
               {/* 7. See More > Dropdown */}
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative ml-1" ref={dropdownRef}>
                 <button
                   onClick={() => setIsSeeMoreOpen((prev) => !prev)}
                   id="see-more-nav-btn"
                   aria-expanded={isSeeMoreOpen}
                   aria-haspopup="true"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                     isSeeMoreOpen
-                      ? 'bg-white/15 text-white border border-white/20 shadow-md'
+                      ? 'bg-white/15 text-white border border-white/25 shadow-lg shadow-black/60'
                       : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10'
                   }`}
                 >
@@ -187,9 +188,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {isSeeMoreOpen && (
                   <div
                     id="see-more-dropdown"
-                    className="absolute top-full left-0 mt-2 w-52 rounded-xl bg-[#0f111a]/95 backdrop-blur-xl border border-white/10 p-1.5 shadow-2xl shadow-black/80 animate-in fade-in zoom-in-95 duration-150 z-50 space-y-0.5"
+                    className="absolute top-full left-0 mt-2.5 w-56 rounded-xl bg-[#0f111a]/98 backdrop-blur-xl border border-white/15 p-1.5 shadow-2xl shadow-black/90 animate-in fade-in zoom-in-95 duration-150 z-50 space-y-0.5"
                   >
-                    {/* ⭐ Stars */}
+                    {/* 1. ⭐ Stars */}
                     <button
                       onClick={() => scrollToSection('popular-actors')}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-colors text-left"
@@ -198,7 +199,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Stars</span>
                     </button>
 
-                    {/* 🌍 Browse by Cinema */}
+                    {/* 2. 🌍 Browse by Cinema */}
                     <button
                       onClick={() => scrollToSection('browse-by-cinema-section')}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-colors text-left"
@@ -207,7 +208,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Browse by Cinema</span>
                     </button>
 
-                    {/* 👥 Actor × Actor */}
+                    {/* 3. 👥 Actor × Actor */}
                     <button
                       onClick={() => scrollToSection('popular-actors')}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-colors text-left"
@@ -216,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Actor × Actor</span>
                     </button>
 
-                    {/* 🏆 Top Rated */}
+                    {/* 4. 🏆 Top Rated */}
                     <button
                       onClick={() => scrollToSection('top-rated-section')}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-colors text-left"
@@ -224,48 +225,57 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>🏆</span>
                       <span>Top Rated</span>
                     </button>
+
+                    {/* 5. Separator */}
+                    <div className="my-1 border-t border-white/10" />
+
+                    {/* 6. 🔑 TMDB API Settings */}
+                    <button
+                      onClick={() => {
+                        setIsSeeMoreOpen(false);
+                        onOpenApiKeyModal();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-amber-300/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors text-left"
+                    >
+                      <span>🔑</span>
+                      <span>TMDB API Settings</span>
+                    </button>
                   </div>
                 )}
               </div>
             </nav>
           </div>
 
-          {/* Right Side Actions: 8. Search | 9. Watchlist | 10. Key/Theme Settings */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
-            {/* 8. Search Trigger */}
+          {/* Right Side Actions: Search | Watchlist */}
+          <div className="flex items-center gap-3 shrink-0 ml-4">
+            {/* Search Trigger */}
             <button
               onClick={onOpenSearch}
               id="nav-search-btn"
               title="Search Movies"
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-gray-200 hover:text-white border border-white/10 transition-all duration-200 hover:scale-105"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-all duration-200 hover:scale-105"
             >
               <Search className="h-4.5 w-4.5" />
             </button>
 
-            {/* 9. Watchlist Trigger */}
+            {/* Watchlist Trigger */}
             <button
               onClick={onOpenWatchlist}
               id="nav-watchlist-btn"
               title="My Watchlist"
-              className="relative flex h-10 items-center gap-2 rounded-xl bg-white/5 hover:bg-white/10 px-3.5 text-gray-200 hover:text-white border border-white/10 transition-all duration-200 hover:scale-105"
+              className="relative flex h-10 items-center gap-2.5 rounded-xl bg-white/5 hover:bg-white/10 px-4 text-gray-200 hover:text-white border border-white/10 transition-all duration-200 hover:scale-105"
             >
-              <Bookmark className="h-4.5 w-4.5 text-red-500 fill-red-500/20" />
-              <span className="hidden sm:inline text-xs font-semibold">Watchlist</span>
-              {watchlist.length > 0 && (
+              <Bookmark className="h-4.5 w-4.5 text-red-500 fill-red-500" />
+              <span className="text-xs sm:text-sm font-semibold">Watchlist</span>
+              {watchlist.length > 0 ? (
                 <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-extrabold text-white shadow-md shadow-red-600/50">
                   {watchlist.length}
                 </span>
+              ) : (
+                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-extrabold text-white shadow-md shadow-red-600/50">
+                  0
+                </span>
               )}
-            </button>
-
-            {/* 10. TMDB Key Settings Button */}
-            <button
-              onClick={onOpenApiKeyModal}
-              id="nav-key-btn"
-              title="TMDB API Settings"
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all duration-200 hover:scale-105"
-            >
-              <Key className="h-4 w-4" />
             </button>
 
             {/* Mobile Menu Toggle */}
@@ -351,6 +361,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="flex w-full items-center gap-3 text-left font-semibold text-gray-300 hover:text-white py-2.5 px-2 rounded-xl hover:bg-white/5"
               >
                 <span>🏆 Top Rated</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenApiKeyModal();
+                }}
+                className="flex w-full items-center gap-3 text-left font-semibold text-amber-300 hover:text-amber-200 py-2.5 px-2 rounded-xl hover:bg-amber-500/10"
+              >
+                <span>🔑 TMDB API Settings</span>
               </button>
             </div>
           </div>
