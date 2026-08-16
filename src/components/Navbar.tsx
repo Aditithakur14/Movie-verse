@@ -24,6 +24,7 @@ interface NavbarProps {
   onOpenWatchlist: () => void;
   onOpenApiKeyModal: () => void;
   onNavigateHome: () => void;
+  onOpenActorVsActor?: () => void;
   activeSection?: string;
 }
 
@@ -32,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenWatchlist,
   onOpenApiKeyModal,
   onNavigateHome,
+  onOpenActorVsActor,
 }) => {
   const { watchlist } = useWatchlist();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -210,7 +212,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                     {/* 3. 👥 Actor × Actor */}
                     <button
-                      onClick={() => scrollToSection('popular-actors')}
+                      onClick={() => {
+                        setIsSeeMoreOpen(false);
+                        if (onOpenActorVsActor) {
+                          onOpenActorVsActor();
+                        } else {
+                          window.history.pushState({}, '', '/actor-vs-actor');
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                        }
+                      }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-200 hover:text-white hover:bg-white/10 transition-colors text-left"
                     >
                       <span>👥</span>
@@ -351,7 +361,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>🌍 Browse by Cinema</span>
               </button>
               <button
-                onClick={() => scrollToSection('popular-actors')}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onOpenActorVsActor) {
+                    onOpenActorVsActor();
+                  } else {
+                    window.history.pushState({}, '', '/actor-vs-actor');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }
+                }}
                 className="flex w-full items-center gap-3 text-left font-semibold text-gray-300 hover:text-white py-2.5 px-2 rounded-xl hover:bg-white/5"
               >
                 <span>👥 Actor × Actor</span>

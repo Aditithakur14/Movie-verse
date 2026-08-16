@@ -18,7 +18,7 @@ import { CinemaDiscoveryModal } from './components/CinemaDiscoveryModal';
 import { GenreDiscoveryModal } from './components/GenreDiscoveryModal';
 import { OttDiscoveryModal } from './components/OttDiscoveryModal';
 import { WatchlistModal } from './components/WatchlistModal';
-
+import { ActorVsActorModal } from './components/ActorVsActorModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { SearchModal } from './components/SearchModal';
 import { Footer } from './components/Footer';
@@ -38,6 +38,7 @@ export default function App() {
   const [selectedCinemaId, setSelectedCinemaId] = useState<string | null>(null);
   const [selectedGenreSlug, setSelectedGenreSlug] = useState<string | null>(null);
   const [selectedOttProvider, setSelectedOttProvider] = useState<string | null>(null);
+  const [isActorVsActorOpen, setIsActorVsActorOpen] = useState(false);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -84,10 +85,17 @@ export default function App() {
       const cinemaMatch = path.match(/\/cinema\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/cinema\/([a-zA-Z0-9_-]+)/);
       const genreMatch = path.match(/\/genre\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/genre\/([a-zA-Z0-9_-]+)/);
       const ottMatch = path.match(/\/ott\/([a-zA-Z0-9_-]+)/) || hash.match(/#\/ott\/([a-zA-Z0-9_-]+)/);
+      const actorVsActorMatch = path.startsWith('/actor-vs-actor') || hash.startsWith('#/actor-vs-actor');
       const searchMatch = path.startsWith('/search') || hash.startsWith('#/search');
 
       if (searchMatch) {
         setIsSearchModalOpen(true);
+      }
+
+      if (actorVsActorMatch) {
+        setIsActorVsActorOpen(true);
+      } else {
+        setIsActorVsActorOpen(false);
       }
 
       if (movieMatch) {
@@ -183,6 +191,19 @@ export default function App() {
     }
   };
 
+  const handleSelectActorVsActor = (isOpen: boolean) => {
+    setIsActorVsActorOpen(isOpen);
+    if (isOpen) {
+      if (!window.location.pathname.startsWith('/actor-vs-actor')) {
+        window.history.pushState({}, '', '/actor-vs-actor');
+      }
+    } else {
+      if (window.location.pathname.startsWith('/actor-vs-actor')) {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
+
 
   useEffect(() => {
     loadInitialData();
@@ -215,6 +236,7 @@ export default function App() {
           onOpenWatchlist={() => setIsWatchlistOpen(true)}
           onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
           onNavigateHome={handleNavigateHome}
+          onOpenActorVsActor={() => handleSelectActorVsActor(true)}
         />
 
         {/* Hero Section */}
@@ -328,6 +350,14 @@ export default function App() {
           providerSlug={selectedOttProvider}
           onClose={() => handleSelectOttProvider(null)}
           onSelectMovie={handleSelectMovie}
+          genreMap={genreMap}
+        />
+
+        <ActorVsActorModal
+          isOpen={isActorVsActorOpen}
+          onClose={() => handleSelectActorVsActor(false)}
+          onSelectMovie={handleSelectMovie}
+          onSelectActor={handleSelectActor}
           genreMap={genreMap}
         />
 

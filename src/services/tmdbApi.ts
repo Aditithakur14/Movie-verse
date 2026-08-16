@@ -1,4 +1,4 @@
-import { Actor, ActorDetails, Genre, Movie, MovieDetails, MovieFilterParams, MovieWatchProviders, SearchResultItem, WatchProvider } from '../types/tmdb';
+import { Actor, ActorDetails, Genre, Movie, MovieCreditCastItem, MovieCreditCrewItem, MovieDetails, MovieFilterParams, MovieWatchProviders, SearchResultItem, WatchProvider } from '../types/tmdb';
 import { getCinemaById } from '../data/cinemas';
 
 // Known working public TMDB API keys for high-availability access
@@ -673,6 +673,133 @@ export const tmdbService = {
         totalPages: 1,
         totalResults: FALLBACK_MOVIES.length,
       };
+    }
+  },
+
+  // Search Actors / People
+  searchActors: async (query: string, page = 1): Promise<Actor[]> => {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+    try {
+      const res = await fetchFromTmdb<{ results: any[] }>('/search/person', { query: trimmed, page });
+      if (res.results && Array.isArray(res.results)) {
+        return res.results.map((item) => {
+          let knownForStr = item.known_for_department || 'Acting';
+          if (Array.isArray(item.known_for) && item.known_for.length > 0) {
+            const titles = item.known_for
+              .map((k: any) => k.title || k.name)
+              .filter((t: any) => typeof t === 'string' && t.trim().length > 0)
+              .slice(0, 2)
+              .join(', ');
+            if (titles) {
+              knownForStr = `${knownForStr} (${titles})`;
+            }
+          }
+          return {
+            id: item.id,
+            name: item.name || 'Unknown Actor',
+            profile_path: item.profile_path || null,
+            popularity: item.popularity || 0,
+            known_for_department: knownForStr,
+            known_for: item.known_for,
+          };
+        });
+      }
+      return [];
+    } catch (error) {
+      console.error('Error searching actors:', error);
+      return [];
+    }
+  },
+
+  // Get person movie credits
+  getPersonMovieCredits: async (
+    personId: number
+  ): Promise<{ cast: MovieCreditCastItem[]; crew: MovieCreditCrewItem[] }> => {
+    try {
+      const data = await fetchFromTmdb<{
+        cast: MovieCreditCastItem[];
+        crew: MovieCreditCrewItem[];
+      }>(`/person/${personId}/movie_credits`);
+      return {
+        cast: data.cast || [],
+        crew: data.crew || [],
+      };
+    } catch (error) {
+      console.error(`Error fetching movie credits for person #${personId}:`, error);
+      return { cast: [], crew: [] };
+    }
+  },
+
+  // Find movies where BOTH actors appear (Actor x Actor discovery)
+  findSharedMovies: async (actor1Id: number, actor2Id: number): Promise<Movie[]> => {
+    try {
+      // 1. Fetch credits for both actors concurrently
+      const [actor1Credits, actor2Credits] = await Promise.all([
+        tmdbService.getPersonMovieCredits(actor1Id),
+        tmdbService.getPersonMovieCredits(actor2Id),
+      ]);
+
+      // Map actor 1's movies by ID
+      const actor1MovieMap = new Map<number, MovieCreditCastItem>();
+      (actor1Credits.cast || []).forEach((m) => {
+        if (m && m.id) {
+          actor1MovieMap.set(m.id, m);
+        }
+      });
+
+      // Find intersection in actor 2's movies
+      const sharedMap = new Map<number, Movie>();
+      (actor2Credits.cast || []).forEach((m2) => {
+        if (m2 && m2.id && actor1MovieMap.has(m2.id)) {
+          const m1 = actor1MovieMap.get(m2.id)!;
+          sharedMap.set(m2.id, {
+            id: m2.id,
+            title: m2.title || m1.title || 'Untitled Movie',
+            original_title: m2.original_title || m1.original_title,
+            overview: m2.overview || m1.overview || '',
+            poster_path: m2.poster_path || m1.poster_path,
+            backdrop_path: m2.backdrop_path || m1.backdrop_path,
+            release_date: m2.release_date || m1.release_date || '',
+            vote_average: m2.vote_average || m1.vote_average || 0,
+            vote_count: m2.vote_count || m1.vote_count || 0,
+            genre_ids: m2.genre_ids || m1.genre_ids || [],
+            popularity: Math.max(m2.popularity || 0, m1.popularity || 0),
+          });
+        }
+      });
+
+      // Also query TMDB discover with with_cast/with_people as a supplementary source
+      try {
+        const discoverRes = await fetchFromTmdb<{ results: Movie[] }>('/discover/movie', {
+          with_cast: `${actor1Id},${actor2Id}`,
+          sort_by: 'popularity.desc',
+        });
+        if (discoverRes.results && Array.isArray(discoverRes.results)) {
+          discoverRes.results.forEach((m) => {
+            if (m && m.id && !sharedMap.has(m.id)) {
+              sharedMap.set(m.id, m);
+            }
+          });
+        }
+      } catch {
+        // Ignore discover fallback error, person movie credits is the primary ground truth
+      }
+
+      const results = Array.from(sharedMap.values());
+      // Sort by popularity / release date descending
+      results.sort((a, b) => {
+        const popDiff = (b.popularity || 0) - (a.popularity || 0);
+        if (Math.abs(popDiff) > 1) return popDiff;
+        const dateA = a.release_date ? new Date(a.release_date).getTime() : 0;
+        const dateB = b.release_date ? new Date(b.release_date).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      return results;
+    } catch (error) {
+      console.error(`Error finding shared movies for actors ${actor1Id} & ${actor2Id}:`, error);
+      return [];
     }
   },
 
